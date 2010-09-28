@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+
+<!-- In order to compile sources, it is necessary having installed an JDK
+(a simple JRE will not be sufficient -> no javac). -->
+
+<project name="j2emacs" basedir="." default="compile">
+
+  <!-- ================================================================= -->
+  <!-- PROPERTIES                                                        -->
+  <!-- ================================================================= -->
+
+  <property name="lib.dir"      value="lib"/>
+  <property name="jar.dir"      value="jar"/>
+  <property name="jar.file"     value="j2emacs.jar"/>
+
+  <!--<property name="ltfs.dir"     value="../ltfs"/>-->
+
+  <property name="classes.dir"  value="classes"/>
+  <property name="source.dir"   value="src"/>
+
+  <property name="version" value="0.1.1"/>
+  <property name="vname" value="j2emacs-${version}"/>
+
+  <patternset id="sources">
+    <include name="**/*.java"/>
+  </patternset>
+
+  <path id="classpath">
+    <fileset dir="${lib.dir}">
+      <include name="**/*.jar"/>
+    </fileset>
+    <!--<path path="${ltfs.dir}/classes"/>-->
+  </path>
+
+  <target name="submodules" description="make submodule dataviz">
+    <!--<ant dir="${ltfs.dir}" target="${target}"/>-->
+  </target>
+
+  <target name="compile" description="compile all">
+    <antcall target="submodules">
+      <param name="target" value="compile"/>
+    </antcall>
+    <mkdir dir="${classes.dir}"/>
+    <javac debug="yes" deprecation="yes"
+           srcdir="${source.dir}" destdir="${classes.dir}">
+      <patternset refid="sources"/>
+      <classpath refid="classpath"/>
+      <compilerarg value="-Xlint"/>
+    </javac>
+  </target>
+
+  <target name="jar" depends="compile" description="jar the main code">
+    <jar destfile="${jar.dir}/${jar.file}" compress="true">
+      <fileset dir="${classes.dir}"/>
+    </jar>
+  </target>
+
+  <target name="plugins-jar" depends="compile" description="jar plugins">
+    <jar destfile="${plugins.file}" compress="false">
+      <fileset dir="${plugins.dir}"/>
+    </jar>
+  </target>
+
+  <target name="clean" description="remove class files">
+    <antcall target="submodules">
+      <param name="target" value="clean"/>
+    </antcall>
+    <delete>
+      <fileset dir="${classes.dir}" includes="**/*.class"/>
+    </delete>
+  </target>
+
+  <target name="cleanall"
+          description="remove class files, (internal) jars and war"
+          depends="clean">
+    <property name="subtarget" value="cleanall"/>
+    <ant target="submodules" inheritAll="true"/>
+    <delete>
+      <fileset dir="${jar.dir}" includes="${jar.file}"/>
+    </delete>
+  </target>
+
+  <target name="tar" description="build distribution tar file">
+    <tar destfile="../${vname}.tar" basedir="../" includes="uttplanner/**"
+         excludes="*.tar*"/>
+    <gzip src="../${vname}.tar" destfile="../${vname}.tar.gz"/>
+    <delete file="../${vname}.tar"/>
+  </target>
+
+</project>
