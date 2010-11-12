@@ -154,7 +154,7 @@ public class J2Emacs {
 
   private boolean ensureEmacsRunning() {
     String cmd = defaultCmd;
-    if (_socket == null ||  _out.checkError()) {
+    if (_socket == null || _out == null ||  _out.checkError()) {
       close();
       if (openSocket()) {
         close();
@@ -226,9 +226,17 @@ public class J2Emacs {
     return false;
   }
 
+  public boolean exitEmacs() {
+    if (! ensureEmacsRunning()) return true;
+    _out.append("(kill-emacs)");
+    _out.flush();
+    return false;
+  }
+
   public boolean killBuffer(String name) {
     if (! ensureEmacsRunning()) return true;
     _out.append("(j2e-kill-buffer \"" + name + "\")");
+    _out.flush();
     return false;
   }
 

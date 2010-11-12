@@ -2,6 +2,8 @@
 
 ;;; Original Copyright (C) 1997 Cygnus Solutions
 
+(require 'compile)
+
 ;;; Known problems and things to do:
 
 ;;; Constants.
@@ -245,6 +247,7 @@ several they are listed in a pop-up where you can select one to edit."
 (defun j2e-reload ()
   "Look up a symbol in the Source Navigator cross-referencer."
   (interactive)
+  (save-some-buffers)
   (j2e-send "reload"))
 
 ;; functions to be called by the main application
