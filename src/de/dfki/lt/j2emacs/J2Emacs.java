@@ -160,11 +160,20 @@ public class J2Emacs {
     }
   }
 
+  /** Return \c true if the the current J2Emacs is in a live state, false
+   *  otherwise */
+  public boolean alive() {
+    if (_socket == null || _out == null ||  _out.checkError()) {
+      close();
+      return false;
+    }
+    return true;
+  }
+
 
   private boolean ensureEmacsRunning() {
     String cmd = defaultCmd;
-    if (_socket == null || _out == null ||  _out.checkError()) {
-      close();
+    if (! alive()) {
       if (openSocket()) {
         close();
         return false;
@@ -244,6 +253,7 @@ public class J2Emacs {
   }
 
   public boolean exitEmacs() {
+    if (! alive()) return true;
     return evalElisp("(save-buffers-kill-emacs)");
   }
 
