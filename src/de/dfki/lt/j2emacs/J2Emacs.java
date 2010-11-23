@@ -59,12 +59,12 @@ public class J2Emacs {
    */
   private String _appname;
 
-  private String defaultCmd ="emacs";
+  private String _defaultCmd ="emacs";
 
   private String _host = "localhost";
   private int _port = 4444;
 
-  private String lispFile = "j2e.el";
+  private String _lispFile = "j2e.el";
 
   /** the directory where to find the lispFile, or null */
   private File _resourceDir;
@@ -110,7 +110,7 @@ public class J2Emacs {
     _resourceDir = resourceDir;
   }
 
-  public void close() {
+  public synchronized void close() {
     if (_out != null) _out.close();
     _out = null;
     if (_commandEvaluator != null) {
@@ -134,7 +134,7 @@ public class J2Emacs {
   private File getElispFile() {
     File result =
       (_resourceDir == null
-          ? new File(lispFile) : new File(_resourceDir, lispFile));
+          ? new File(_lispFile) : new File(_resourceDir, _lispFile));
     return result;
   }
 
@@ -172,7 +172,7 @@ public class J2Emacs {
 
 
   private boolean ensureEmacsRunning() {
-    String cmd = defaultCmd;
+    String cmd = _defaultCmd;
     if (! alive()) {
       if (openSocket()) {
         close();
@@ -311,6 +311,10 @@ public class J2Emacs {
    */
   public void addStartHook(String string) {
     _startHooks.add(string);
+  }
+
+  public void setEmacsPath(String emacsPath) {
+    _defaultCmd = emacsPath;
   }
 
   /*
