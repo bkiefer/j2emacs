@@ -38,7 +38,7 @@
 ;; j2e-minor-mode, eventually
 (defvar j2e-project-file-list nil)
 
-(defvar j2e-minor-mode nil "t if source navigator mode is active")
+(defvar j2e-minor-mode nil "t if j2e mode is active")
 (make-variable-buffer-local 'j2e-minor-mode)
 (or (assoc 'j2e-minor-mode minor-mode-alist)
     (setq minor-mode-alist (cons '(j2e-minor-mode " J2E") minor-mode-alist)))
@@ -54,7 +54,7 @@ be activated for other buffers.  You can toggle it for J2E-related buffers
 though.  This lets you access the command bindings that this mode overrides."
   (interactive "P")
   (unless j2e-process
-    (error "This buffer has no Source Navigator connection"))
+    (error "This buffer has no j2emacs connection"))
   (setq j2e-minor-mode (if (null arg) (not j2e-minor-mode)
                          (> (prefix-numeric-value arg) 0))))
 
@@ -140,7 +140,7 @@ though.  This lets you access the command bindings that this mode overrides."
 (make-variable-buffer-local 'j2e-file-name)
 
 (defvar j2e-keymap nil
-  "Keymap for Source Navigator minor mode.")
+  "Keymap for j2emacs minor mode.")
 (defun j2e-keymap ()
   (unless j2e-keymap
     (setq j2e-keymap (make-sparse-keymap))

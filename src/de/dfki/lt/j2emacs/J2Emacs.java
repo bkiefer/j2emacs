@@ -66,6 +66,9 @@ public class J2Emacs {
 
   private String lispFile = "j2e.el";
 
+  /** the directory where to find the lispFile, or null */
+  private File _resourceDir;
+
   private static final Pattern splitReg =
     Pattern.compile(" *([^\"][^ ]*|\"(?:[^\\\"]*|\\.)*\")");
 
@@ -75,6 +78,8 @@ public class J2Emacs {
   private PrintWriter _out;
 
   private Thread _commandEvaluator;
+
+  private List<String> _startHooks;
 
   public interface Action { void execute(String ... args); }
 
@@ -94,13 +99,15 @@ public class J2Emacs {
     return _socket == null;
   }
 
-  public J2Emacs(String appname) {
+  public J2Emacs(String appname, File resourceDir) {
     _appname = appname;
     _socket = null;
     _clientSocket = null;
     _in = null;
     _out = null;
     _actions = new HashMap<String, Action>();
+    _startHooks = new ArrayList<String>();
+    _resourceDir = resourceDir;
   }
 
   public void close() {
@@ -125,7 +132,9 @@ public class J2Emacs {
   }
 
   private File getElispFile() {
-    File result = new File(lispFile);
+    File result =
+      (_resourceDir == null
+          ? new File(lispFile) : new File(_resourceDir, lispFile));
     return result;
   }
 
@@ -208,6 +217,10 @@ public class J2Emacs {
         _commandEvaluator.start();
         // TODO remove if stable
         //_out.append("(setq debug-on-error t)"); _out.flush();
+        for (String sexp : _startHooks) {
+          _out.append(sexp);
+        }
+        _out.flush();
       } catch (IOException e) {
         log.error("Accept failed: " + _host + ":" + _port);
         close();
@@ -217,27 +230,25 @@ public class J2Emacs {
   }
 
 
+  public boolean evalElisp(String sexp) {
+    if (! ensureEmacsRunning()) return true;
+    _out.append(sexp);
+    _out.flush();
+    return false;
+  }
+
   /** if state=="disabled", file is opened read-only */
   public boolean startEmacs(File file, int line, int col, String state) {
-    if (!ensureEmacsRunning()) return true;
-    _out.append("(j2e-visit \"" + file.getParent() + "\" \""
+    return evalElisp("(j2e-visit \"" + file.getParent() + "\" \""
         + file.getName() + "\" " + line + " " + col + " \"" + state + "\")");
-    if (_out.checkError()) log.warn("out error");
-    return false;
   }
 
   public boolean exitEmacs() {
-    if (! ensureEmacsRunning()) return true;
-    _out.append("(kill-emacs)");
-    _out.flush();
-    return false;
+    return evalElisp("(save-buffers-kill-emacs)");
   }
 
   public boolean killBuffer(String name) {
-    if (! ensureEmacsRunning()) return true;
-    _out.append("(j2e-kill-buffer \"" + name + "\")");
-    _out.flush();
-    return false;
+    return evalElisp("(j2e-kill-buffer \"" + name + "\")");
   }
 
   public boolean fillBuffer(String name, Reader in) {
@@ -264,24 +275,15 @@ public class J2Emacs {
   }
 
   public boolean appendToBuffer(String name, String what) {
-    if (! ensureEmacsRunning()) return true;
-    _out.append("(j2e-append-to-buffer \"" + name + "\" \"" + what + "\")");
-    _out.flush();
-    return false;
+    return evalElisp("(j2e-append-to-buffer \"" + name + "\" \"" + what + "\")");
   }
 
   public boolean clearBuffer(String name) {
-    if (! ensureEmacsRunning()) return true;
-    _out.append("(j2e-clear-buffer \"" + name + "\")");
-    _out.flush();
-    return false;
+    return evalElisp("(j2e-clear-buffer \"" + name + "\")");
   }
 
   public boolean createCompilationBuffer(String name) {
-    if (! ensureEmacsRunning()) return true;
-    _out.append("(j2e-compilation-buffer \"" + name + "\")");
-    _out.flush();
-    return false;
+    return evalElisp("(j2e-compilation-buffer \"" + name + "\")");
   }
 
   public boolean markAsProjectFiles(File rootDirectory, List<File> files) {
@@ -292,6 +294,13 @@ public class J2Emacs {
     _out.append("))");
     _out.flush();
     return false;
+  }
+
+  /** The command (sexp) in the string will be sent to emacs if it is restarted,
+   *  e.g., to load a major mode for the application
+   */
+  public void addStartHook(String string) {
+    _startHooks.add(string);
   }
 
   /*
