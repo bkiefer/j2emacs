@@ -33,6 +33,9 @@ public class J2Emacs {
     public EmacsBufferAppender(String bufName, boolean compilationMode) {
       _bufferName = bufName;
       _compilationMode = compilationMode;
+      if (_compilationMode) {
+        createCompilationBuffer(_bufferName);
+      }
     }
 
     public EmacsBufferAppender() { this("*log*", false); }
@@ -107,7 +110,7 @@ public class J2Emacs {
     return _socket == null;
   }
 
-  public J2Emacs(String appname, File resourceDir) {
+  public J2Emacs(String appname, File resourceDir, String emacsPath) {
     _appname = appname;
     _socket = null;
     _clientSocket = null;
@@ -117,6 +120,9 @@ public class J2Emacs {
     _startHooks = new ArrayList<String>();
     _resourceDir = resourceDir;
     _buffering = new HashMap<String, StringBuilder>();
+    if (emacsPath != null) {
+      _defaultCmd = emacsPath;
+    }
   }
 
   public synchronized void close() {
@@ -138,6 +144,10 @@ public class J2Emacs {
     catch (IOException ex) { log.warn(ex.toString()); }
     _socket = null ;
 
+  }
+
+  public synchronized boolean startEmacs() {
+    return ensureEmacsRunning();
   }
 
   private File getElispFile() {
@@ -250,9 +260,11 @@ public class J2Emacs {
 
   public boolean evalElisp(String sexp) {
     if (! ensureEmacsRunning()) return true;
-    _out.append(sexp);
-    _out.flush();
-    return false;
+    synchronized (_out) {
+      _out.append(sexp);
+      _out.flush();
+      return false;
+    }
   }
 
   /** if state=="disabled", file is opened read-only */
@@ -311,13 +323,13 @@ public class J2Emacs {
   }
 
   public boolean markAsProjectFiles(File rootDirectory, List<File> files) {
-    _out.append("(j2e-project-files \"" + rootDirectory.getPath() + "\" '( ");
+    StringBuilder sb = new StringBuilder();
+    sb.append("(j2e-project-files \"" + rootDirectory.getPath() + "\" '( ");
     for (File f : files) {
-      _out.append("\""+ f.getAbsolutePath() + "\" ");
+      sb.append("\""+ f.getAbsolutePath() + "\" ");
     }
-    _out.append("))");
-    _out.flush();
-    return false;
+    sb.append("))");
+    return evalElisp(sb.toString());
   }
 
   /** The command (sexp) in the string will be sent to emacs if it is restarted,
@@ -325,10 +337,6 @@ public class J2Emacs {
    */
   public void addStartHook(String string) {
     _startHooks.add(string);
-  }
-
-  public void setEmacsPath(String emacsPath) {
-    _defaultCmd = emacsPath;
   }
 
   public void startBuffering(String name) {

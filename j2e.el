@@ -276,13 +276,15 @@ several they are listed in a pop-up where you can select one to edit."
 
 (defun j2e-compilation-buffer(name)
   (save-excursion
-    (let ((buffer (get-buffer-create name)))
-      (with-current-buffer buffer
-        (j2e-comp-mode)
-        (setq j2e-process j2e-current-process)
-        (setq j2e-minor-mode t)
-        (if (not (get-buffer-window buffer))
-            (pop-to-buffer buffer))))))
+    (let ((buffer (get-buffer name)))
+      (unless buffer
+        (setq buffer (get-buffer-create name))
+        (with-current-buffer buffer
+          (j2e-comp-mode)
+          (setq j2e-process j2e-current-process)
+          (setq j2e-minor-mode t)))
+      (if (not (get-buffer-window buffer))
+          (pop-to-buffer buffer)))))
 
 
 ;; find-tag-other-frame and find-tag-other-window versions are harder
