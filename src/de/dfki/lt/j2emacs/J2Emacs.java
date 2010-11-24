@@ -83,6 +83,14 @@ public class J2Emacs {
 
   public interface Action { void execute(String ... args); }
 
+  /** to increase efficiency, output to, e.g., compilation buffers can be
+   *  buffered internally and passed to emacs later as a bigger chunk.
+   *
+   *  The buffers for the buffered emacs buffers, represented by their names,
+   *  are stored here.
+   */
+  private HashMap<String, StringBuilder> _buffering;
+
   private HashMap<String, Action> _actions;
 
   /** Try to find a free TCP/IP port. Return true on failure */
@@ -108,6 +116,7 @@ public class J2Emacs {
     _actions = new HashMap<String, Action>();
     _startHooks = new ArrayList<String>();
     _resourceDir = resourceDir;
+    _buffering = new HashMap<String, StringBuilder>();
   }
 
   public synchronized void close() {
@@ -285,6 +294,11 @@ public class J2Emacs {
   }
 
   public boolean appendToBuffer(String name, String what) {
+    StringBuilder sb = _buffering.get(name);
+    if (sb != null) {
+      sb.append(what);
+      return false;
+    }
     return evalElisp("(j2e-append-to-buffer \"" + name + "\" \"" + what + "\")");
   }
 
@@ -315,6 +329,20 @@ public class J2Emacs {
 
   public void setEmacsPath(String emacsPath) {
     _defaultCmd = emacsPath;
+  }
+
+  public void startBuffering(String name) {
+    if (! _buffering.containsKey(name)) {
+      _buffering.put(name, new StringBuilder());
+    }
+  }
+
+  public void flushBuffer(String name) {
+    if (_buffering.containsKey(name)) {
+      String output = _buffering.get(name).toString();
+      _buffering.remove(name);
+      appendToBuffer(name, output);
+    }
   }
 
   /*

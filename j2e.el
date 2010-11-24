@@ -341,13 +341,10 @@ several they are listed in a pop-up where you can select one to edit."
 ;; application eventually
 (defun j2e-check-project-file()
   (let ((buffer-file (buffer-file-name (current-buffer)))
-        (project-files j2e-project-file-list)
-        (current-file nil))
-    (message "cpf %s" buffer-file)
+        (project-files j2e-project-file-list))
     (while project-files
       (let ((path ;;(expand-file-name (car project-files) j2e-project-directory)
              (car project-files)))
-        (message "cpf %s" path)
         (if (string= path buffer-file)
             (progn
               (j2e-make-client-buffer (car project-files))
