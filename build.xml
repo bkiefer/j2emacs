@@ -8,7 +8,7 @@
   <property name="apidoc.title" value="Java &lt;-&gt; Emacs adapter"/>
   <property name="apidoc.bottomline" value="Author: Bernd Kiefer"/>
 
-  <import file="../build-skeleton.xml" as=""/>
+  <import file="../buildsys/build-skeleton.xml" as=""/>
 
   <!-- ================================================================= -->
   <!-- SUBMODULES                                                        -->
