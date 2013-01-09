@@ -268,7 +268,7 @@ public class J2Emacs {
   }
 
   /** if state=="disabled", file is opened read-only */
-  public boolean startEmacs(File file, int line, int col, String state) {
+  public boolean visitFilePosition(File file, int line, int col, String state) {
     return evalElisp("(j2e-visit \"" + file.getParent() + "\" \""
         + file.getName() + "\" " + line + " " + col + " \"" + state + "\")");
   }
