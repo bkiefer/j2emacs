@@ -235,9 +235,9 @@ public class J2Emacs {
                       close();
                       return;
                     }
-                    String cmd = sb.toString();
-                    if (! cmd.isEmpty())
-                      eval(cmd);
+                    String command = sb.toString();
+                    if (! command.isEmpty())
+                      eval(command);
                   }
                 }
               },
