@@ -14,12 +14,11 @@
   <!-- SUBMODULES                                                        -->
   <!-- ================================================================= -->
 
-  <target name="submodules" description="make submodules">
-    <!--
-    <ant dir="${dependancy.dir}" target="${target}" inheritAll="false">
-      <property name="external-lib.dir" value="${basedir}/${lib.dir}"/>
-    </ant>
-    -->
+  <!--
+  <target name="modules" description="make submodules">
+    <antcall target="subant">
+      <param name="dir" value="../dataviz"/>
+    </antcall>
   </target>
-
+  -->
 </project>
