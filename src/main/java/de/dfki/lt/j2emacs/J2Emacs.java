@@ -48,10 +48,8 @@ public class J2Emacs {
       appendToBuffer(_bufferName, _mylayout.format(arg0));
     }
 
-    @Override
     public void close() { closed = true; killBuffer(_bufferName); }
 
-    @Override
     public boolean requiresLayout() { return true; }
   }
 
@@ -220,7 +218,6 @@ public class J2Emacs {
         _commandEvaluator =
           new Thread(
               new Runnable() {
-                @Override
                 public void run() {
                   while (true) {
                     StringBuffer sb = new StringBuffer();
