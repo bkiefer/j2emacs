@@ -3,6 +3,7 @@ package de.dfki.lt.j2emacs;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
@@ -11,6 +12,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,10 +33,7 @@ public class J2Emacs {
   private String _host = "localhost";
   private int _port = 4444;
 
-  private String _lispFile = "j2e.el";
-
-  /** the directory where to find the lispFile, or null */
-  private File _resourceDir;
+  private static String LISPFILE = "j2e.el";
 
   private static final Pattern splitReg =
     Pattern.compile(" *([^\"][^ ]*|\"(?:[^\\\"]*|\\.)*\")");
@@ -74,7 +73,7 @@ public class J2Emacs {
     return _socket == null;
   }
 
-  public J2Emacs(String appname, File resourceDir, String emacsPath) {
+  public J2Emacs(String appname, String emacsPath) {
     _appname = appname;
     _socket = null;
     _clientSocket = null;
@@ -82,7 +81,6 @@ public class J2Emacs {
     _out = null;
     _actions = new HashMap<String, Action>();
     _startHooks = new ArrayList<String>();
-    _resourceDir = resourceDir;
     _buffering = new HashMap<String, StringBuilder>();
     if (emacsPath != null) {
       _defaultCmd = emacsPath;
@@ -112,13 +110,6 @@ public class J2Emacs {
 
   public synchronized boolean startEmacs() {
     return ensureEmacsRunning();
-  }
-
-  private File getElispFile() {
-    File result =
-      (_resourceDir == null
-          ? new File(_lispFile) : new File(_resourceDir, _lispFile));
-    return result;
   }
 
   public void registerAction(String key, Action action) {
@@ -163,9 +154,12 @@ public class J2Emacs {
       }
 
       // start Emacs
-      File elispFile = getElispFile();
-      String loadCmd = "(progn (add-to-list 'load-path \""
-        + elispFile.getAbsoluteFile().getParent() +"\") (require 'j2e)"
+      InputStream in = getClass().getClassLoader().getResourceAsStream(LISPFILE);
+      String j2ecode = "";
+      try (Scanner sc = new Scanner(in, "UTF-8").useDelimiter("\\A")) {
+          j2ecode = sc.next();
+      }
+      String loadCmd = "(progn " + j2ecode + " "
         + "(j2e-startup \"" + _appname + "\" \"" + _host + "\" " + _port + "))";
       try {
         String[] cmdarray = { cmd, "--eval", loadCmd };
