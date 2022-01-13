@@ -14,46 +14,12 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.log4j.AppenderSkeleton;
-import org.apache.log4j.Layout;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.spi.LoggingEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class J2Emacs {
 
-  /** A log4j appender that just outputs the message of the logging event in
-   *  plain form to an emacs buffer.
-   */
-  public class EmacsBufferAppender extends AppenderSkeleton {
-    private String _bufferName;
-    private Layout _mylayout = new PatternLayout("%p: %m%n");
-    private boolean _compilationMode;
-
-    public EmacsBufferAppender(String bufName, boolean compilationMode) {
-      _bufferName = bufName;
-      _compilationMode = compilationMode;
-      if (_compilationMode) {
-        createCompilationBuffer(_bufferName);
-      }
-    }
-
-    public EmacsBufferAppender() { this("*log*", false); }
-
-    @Override
-    protected void append(LoggingEvent arg0) {
-      if (_compilationMode) {
-        createCompilationBuffer(_bufferName);
-      }
-      appendToBuffer(_bufferName, _mylayout.format(arg0));
-    }
-
-    public void close() { closed = true; killBuffer(_bufferName); }
-
-    public boolean requiresLayout() { return true; }
-  }
-
-  private static Logger log = Logger.getLogger("J2Emacs");
+  private static Logger log = LoggerFactory.getLogger("J2Emacs");
 
   /** The visible name of the application that uses this connection. Shown in
    *  emacs buffers and menus.
@@ -350,14 +316,19 @@ public class J2Emacs {
     }
   }
 
+  public Logger getLogger(String bufName) {
+      return new J2ELogger(bufName, this);
+  }
+  
   /*
   public static void main(String[] args) throws IOException {
-    J2Emacs j2e = new J2Emacs();
-    j2e.startEmacs(new File("/home/kiefer/ing"), 30, 7, "");
+    File emacsLispPath = new File(".");
+    J2Emacs j2e = new J2Emacs("Rudibugger", emacsLispPath, null);
+    j2e.startEmacs();
     if (j2e._out.checkError()) log.warn("out error");
 
-    j2e.startEmacs(new File("/home/kiefer/here"), 3, 7, "");
-    j2e.startEmacs(new File("/home/kiefer/ing"), 3, 7, "");
+    //j2e.startEmacs(new File("/home/kiefer/here"), 3, 7, "");
+    //j2e.startEmacs(new File("/home/kiefer/ing"), 3, 7, "");
 
     j2e.fillBuffer("*test*", new StringReader("foobar"));
     j2e.clearBuffer("*test*");
@@ -368,9 +339,9 @@ public class J2Emacs {
 
     BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
     String line;
-    while(false && ! (line = in.readLine()).isEmpty()) {
+    while(true && ! (line = in.readLine()).isEmpty()) {
       switch (line.charAt(0)) {
-        case '<': j2e.startEmacs(new File(line.substring(1)),0,0,""); break;
+        case '<': j2e.visitFilePosition(new File(line.substring(1)),0,0,""); break;
         case '>': j2e.fillBuffer("test", new StringReader(line.substring(1)));break;
         default:
           j2e._out.append(line); j2e._out.flush(); break;
