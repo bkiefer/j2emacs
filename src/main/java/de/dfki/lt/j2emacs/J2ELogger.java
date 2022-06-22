@@ -10,7 +10,7 @@ import org.slf4j.spi.LocationAwareLogger;
 
 public class J2ELogger extends MarkerIgnoringBase {
     private static final long serialVersionUID = 4353102942447119392L;
-    
+
     protected static final int LOG_LEVEL_TRACE = LocationAwareLogger.TRACE_INT;
     protected static final int LOG_LEVEL_DEBUG = LocationAwareLogger.DEBUG_INT;
     protected static final int LOG_LEVEL_INFO = LocationAwareLogger.INFO_INT;
@@ -22,7 +22,7 @@ public class J2ELogger extends MarkerIgnoringBase {
     protected static final int LOG_LEVEL_OFF = LOG_LEVEL_ERROR + 10;
 
     private static boolean INITIALIZED = false;
-    
+
     private String _name;
     private J2Emacs _j2e;
 
@@ -41,7 +41,7 @@ public class J2ELogger extends MarkerIgnoringBase {
      * SimpleLogger instances.
      */
     J2ELogger(String bufferName, J2Emacs j2e) {
-        this._name =  bufferName; 
+        this._name =  bufferName;
         this._j2e = j2e;
         _j2e.createCompilationBuffer(_name);
     }
@@ -71,9 +71,9 @@ public class J2ELogger extends MarkerIgnoringBase {
 
         // Append the message
         buf.append(message);
+        buf.append('\n');
 
         write(buf, t);
-
     }
 
     protected String renderLevel(int level) {
@@ -95,7 +95,7 @@ public class J2ELogger extends MarkerIgnoringBase {
     /**
      * To avoid intermingling of log messages and associated stack traces, the two
      * operations are done in a synchronized block.
-     * 
+     *
      * @param buf
      * @param t
      */
@@ -161,7 +161,7 @@ public class J2ELogger extends MarkerIgnoringBase {
     public String getName() {
         return _name;
     }
-    
+
     /** Are {@code trace} messages currently enabled? */
     public boolean isTraceEnabled() {
         return isLevelEnabled(LOG_LEVEL_TRACE);
