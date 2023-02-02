@@ -311,9 +311,9 @@ public class J2Emacs {
   }
 
   public Logger getLogger(String bufName) {
-      return new J2ELogger(bufName, this);
+    return new J2ELogger(bufName, this);
   }
-  
+
   /*
   public static void main(String[] args) throws IOException {
     File emacsLispPath = new File(".");
