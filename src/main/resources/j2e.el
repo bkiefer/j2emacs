@@ -263,9 +263,10 @@ several they are listed in a pop-up where you can select one to edit."
 (defun j2e-append-to-buffer(name what)
   (save-excursion
     (with-current-buffer (get-buffer-create name)
-      (toggle-read-only 0)
+      (setq buffer-read-only nil)
       (goto-char (point-max))
-      (insert what))))
+      (insert what)
+      (setq buffer-read-only t))))
 
 (defun j2e-clear-buffer(name)
   (save-excursion
